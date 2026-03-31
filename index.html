@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ElementIQ — Periodic Table Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --panel: #111827;
+    --panel2: #161f30;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card-glow: 0 0 30px rgba(0,212,255,0.08);
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+font-family: ‘Syne’, sans-serif;
+background: var(–bg);
+color: var(–text);
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+/* Animated background */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background:
+radial-gradient(ellipse 600px 400px at 10% 20%, rgba(0,212,255,0.04) 0%, transparent 70%),
+radial-gradient(ellipse 500px 500px at 90% 80%, rgba(124,58,237,0.05) 0%, transparent 70%);
+pointer-events: none;
+z-index: 0;
+}
+
+/* Header */
+.header {
+position: relative;
+z-index: 10;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 20px 32px;
+border-bottom: 1px solid var(–border);
+background: rgba(10,14,26,0.8);
+backdrop-filter: blur(12px);
+}
+
+.logo {
+font-family: ‘Space Mono’, monospace;
+font-size: 22px;
+font-weight: 700;
+letter-spacing: -1px;
+}
+
+.logo span { color: var(–accent); }
+
+.header-stats {
+display: flex;
+gap: 24px;
+align-items: center;
+}
+
+.header-stat {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 2px;
+}
+
+.header-stat .val {
+font-family: ‘Space Mono’, monospace;
+font-size: 20px;
+font-weight: 700;
+color: var(–accent);
+}
+
+.header-stat .lbl {
+font-size: 10px;
+text-transform: uppercase;
+letter-spacing: 1.5px;
+color: var(–muted);
+}
+
+.streak-badge {
+display: flex;
+align-items: center;
+gap: 8px;
+background: rgba(245,158,11,0.12);
+border: 1px solid rgba(245,158,11,0.3);
+border-radius: 24px;
+padding: 6px 14px;
+font-family: ‘Space Mono’, monospace;
+font-size: 13px;
+color: var(–yellow);
+}
+
+/* Layout */
+.layout {
+position: relative;
+z-index: 1;
+display: grid;
+grid-template-columns: 280px 1fr 260px;
+gap: 20px;
+padding: 24px 32px;
+max-width: 1300px;
+margin: 0 auto;
+min-height: calc(100vh - 73px);
+}
+
+/* Sidebar */
+.sidebar {
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+
+.panel {
+background: var(–panel);
+border: 1px solid var(–border);
+border-radius: 16px;
+padding: 20px;
+box-shadow: var(–card-glow);
+}
+
+.panel-title {
+font-size: 10px;
+text-transform: uppercase;
+letter-spacing: 2px;
+color: var(–muted);
+margin-bottom: 16px;
+font-family: ‘Space Mono’, monospace;
+}
+
+/* Mode selector */
+.modes {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.mode-btn {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 14px;
+border-radius: 10px;
+border: 1px solid transparent;
+background: transparent;
+color: var(–muted);
+cursor: pointer;
+transition: all 0.2s;
+font-family: ‘Syne’, sans-serif;
+font-size: 14px;
+text-align: left;
+width: 100%;
+}
+
+.mode-btn:hover {
+background: rgba(0,212,255,0.06);
+color: var(–text);
+border-color: rgba(0,212,255,0.15);
+}
+
+.mode-btn.active {
+background: rgba(0,212,255,0.1);
+color: var(–accent);
+border-color: rgba(0,212,255,0.3);
+}
+
+.mode-icon {
+font-size: 20px;
+width: 32px;
+text-align: center;
+}
+
+/* Difficulty */
+.diff-btns {
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: 6px;
+}
+
+.diff-btn {
+padding: 8px 4px;
+border-radius: 8px;
+border: 1px solid var(–border);
+background: transparent;
+color: var(–muted);
+cursor: pointer;
+font-family: ‘Space Mono’, monospace;
+font-size: 11px;
+transition: all 0.2s;
+}
+
+.diff-btn:hover { color: var(–text); border-color: var(–accent); }
+
+.diff-btn.active-easy { background: rgba(16,185,129,0.15); color: var(–green); border-color: var(–green); }
+.diff-btn.active-medium { background: rgba(245,158,11,0.15); color: var(–yellow); border-color: var(–yellow); }
+.diff-btn.active-hard { background: rgba(239,68,68,0.15); color: var(–red); border-color: var(–red); }
+
+/* Progress bar */
+.progress-wrap {
+margin-bottom: 12px;
+}
+
+.progress-labels {
+display: flex;
+justify-content: space-between;
+font-size: 11px;
+color: var(–muted);
+font-family: ‘Space Mono’, monospace;
+margin-bottom: 6px;
+}
+
+.progress-bar {
+height: 6px;
+background: var(–panel2);
+border-radius: 99px;
+overflow: hidden;
+}
+
+.progress-fill {
+height: 100%;
+background: linear-gradient(90deg, var(–accent), var(–accent3));
+border-radius: 99px;
+transition: width 0.4s ease;
+}
+
+/* Category filter */
+.cats {
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.cat-item {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 8px 10px;
+border-radius: 8px;
+cursor: pointer;
+transition: background 0.15s;
+border: 1px solid transparent;
+}
+
+.cat-item:hover { background: rgba(255,255,255,0.04); }
+.cat-item.active { border-color: var(–border); background: var(–panel2); }
+
+.cat-dot {
+width: 8px; height: 8px;
+border-radius: 50%;
+margin-right: 8px;
+}
+
+.cat-name { font-size: 12px; flex: 1; }
+
+.cat-count {
+font-family: ‘Space Mono’, monospace;
+font-size: 10px;
+color: var(–muted);
+background: var(–panel2);
+padding: 2px 6px;
+border-radius: 4px;
+}
+
+/* Main game area */
+.game-area {
+display: flex;
+flex-direction: column;
+gap: 20px;
+align-items: center;
+justify-content: center;
+}
+
+/* Element card */
+.element-card {
+width: 100%;
+max-width: 480px;
+background: var(–panel);
+border: 1px solid var(–border);
+border-radius: 24px;
+padding: 40px 36px;
+text-align: center;
+position: relative;
+overflow: hidden;
+box-shadow: 0 0 60px rgba(0,0,0,0.4);
+transition: transform 0.15s;
+}
+
+.element-card::before {
+content: ‘’;
+position: absolute;
+top: -1px; left: -1px; right: -1px;
+height: 3px;
+background: linear-gradient(90deg, var(–accent), var(–accent3));
+border-radius: 24px 24px 0 0;
+}
+
+.question-type {
+font-size: 10px;
+text-transform: uppercase;
+letter-spacing: 2px;
+color: var(–muted);
+font-family: ‘Space Mono’, monospace;
+margin-bottom: 28px;
+}
+
+.element-display {
+margin-bottom: 28px;
+}
+
+.element-atomic {
+font-family: ‘Space Mono’, monospace;
+font-size: 13px;
+color: var(–muted);
+margin-bottom: 4px;
+}
+
+.element-symbol-big {
+font-family: ‘Space Mono’, monospace;
+font-size: 88px;
+font-weight: 700;
+line-height: 1;
+color: var(–accent);
+text-shadow: 0 0 40px rgba(0,212,255,0.3);
+letter-spacing: -4px;
+margin-bottom: 8px;
+}
+
+.element-number-big {
+font-family: ‘Space Mono’, monospace;
+font-size: 100px;
+font-weight: 700;
+line-height: 1;
+color: transparent;
+-webkit-text-stroke: 2px var(–accent);
+text-shadow: 0 0 40px rgba(0,212,255,0.2);
+margin-bottom: 8px;
+}
+
+.element-category-tag {
+display: inline-block;
+font-size: 10px;
+text-transform: uppercase;
+letter-spacing: 1.5px;
+padding: 4px 10px;
+border-radius: 99px;
+font-family: ‘Space Mono’, monospace;
+margin-top: 4px;
+}
+
+.question-text {
+font-size: 17px;
+color: var(–text);
+margin-bottom: 28px;
+line-height: 1.5;
+}
+
+/* Answer options */
+.options-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+margin-bottom: 20px;
+}
+
+.option-btn {
+padding: 14px 12px;
+border-radius: 12px;
+border: 1px solid var(–border);
+background: var(–panel2);
+color: var(–text);
+cursor: pointer;
+font-family: ‘Syne’, sans-serif;
+font-size: 14px;
+font-weight: 600;
+transition: all 0.15s;
+position: relative;
+overflow: hidden;
+}
+
+.option-btn:hover:not(:disabled) {
+border-color: var(–accent);
+background: rgba(0,212,255,0.08);
+transform: translateY(-1px);
+}
+
+.option-btn.correct {
+background: rgba(16,185,129,0.15);
+border-color: var(–green);
+color: var(–green);
+animation: pulse-green 0.4s ease;
+}
+
+.option-btn.wrong {
+background: rgba(239,68,68,0.12);
+border-color: var(–red);
+color: var(–red);
+animation: shake 0.3s ease;
+}
+
+.option-btn:disabled { cursor: default; }
+
+@keyframes pulse-green {
+0% { transform: scale(1); }
+50% { transform: scale(1.03); }
+100% { transform: scale(1); }
+}
+
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+25% { transform: translateX(-6px); }
+75% { transform: translateX(6px); }
+}
+
+/* Text input mode */
+.text-input-wrap {
+display: flex;
+gap: 10px;
+margin-bottom: 20px;
+}
+
+.text-input {
+flex: 1;
+padding: 14px 16px;
+border-radius: 12px;
+border: 1px solid var(–border);
+background: var(–panel2);
+color: var(–text);
+font-family: ‘Space Mono’, monospace;
+font-size: 16px;
+outline: none;
+transition: border-color 0.2s;
+}
+
+.text-input:focus { border-color: var(–accent); }
+.text-input.correct { border-color: var(–green); background: rgba(16,185,129,0.08); }
+.text-input.wrong { border-color: var(–red); background: rgba(239,68,68,0.08); animation: shake 0.3s ease; }
+
+.submit-btn {
+padding: 14px 22px;
+border-radius: 12px;
+border: none;
+background: var(–accent);
+color: var(–bg);
+font-family: ‘Syne’, sans-serif;
+font-size: 14px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.15s;
+}
+
+.submit-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+/* Feedback */
+.feedback-bar {
+height: 44px;
+border-radius: 10px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 14px;
+font-weight: 700;
+letter-spacing: 0.5px;
+transition: all 0.3s;
+opacity: 0;
+}
+
+.feedback-bar.show { opacity: 1; }
+.feedback-bar.correct { background: rgba(16,185,129,0.15); color: var(–green); border: 1px solid rgba(16,185,129,0.3); }
+.feedback-bar.wrong { background: rgba(239,68,68,0.1); color: var(–red); border: 1px solid rgba(239,68,68,0.2); }
+
+/* Next button */
+.next-btn {
+padding: 14px 36px;
+border-radius: 12px;
+border: none;
+background: linear-gradient(135deg, var(–accent), #0099cc);
+color: var(–bg);
+font-family: ‘Syne’, sans-serif;
+font-size: 15px;
+font-weight: 800;
+cursor: pointer;
+transition: all 0.2s;
+display: none;
+letter-spacing: 0.5px;
+margin-top: 4px;
+}
+
+.next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,212,255,0.3); }
+.next-btn.show { display: inline-block; animation: fadeUp 0.3s ease; }
+
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+/* Timer */
+.timer-ring {
+position: absolute;
+top: 20px;
+right: 20px;
+width: 48px;
+height: 48px;
+}
+
+.timer-ring svg { transform: rotate(-90deg); }
+
+.timer-ring circle {
+fill: none;
+stroke-width: 3;
+}
+
+.timer-ring .bg { stroke: var(–panel2); }
+.timer-ring .fg {
+stroke: var(–accent);
+stroke-linecap: round;
+transition: stroke-dashoffset 1s linear, stroke 0.3s;
+}
+
+.timer-text {
+position: absolute;
+inset: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+font-family: ‘Space Mono’, monospace;
+font-size: 13px;
+font-weight: 700;
+color: var(–accent);
+}
+
+/* Right sidebar - stats */
+.right-sidebar {
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+
+/* Stats grid */
+.stats-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 10px;
+}
+
+.stat-card {
+background: var(–panel2);
+border: 1px solid var(–border);
+border-radius: 12px;
+padding: 14px 12px;
+text-align: center;
+}
+
+.stat-card .val {
+font-family: ‘Space Mono’, monospace;
+font-size: 22px;
+font-weight: 700;
+margin-bottom: 2px;
+}
+
+.stat-card .lbl {
+font-size: 9px;
+text-transform: uppercase;
+letter-spacing: 1.5px;
+color: var(–muted);
+}
+
+/* History */
+.history-list {
+display: flex;
+flex-direction: column;
+gap: 6px;
+max-height: 220px;
+overflow-y: auto;
+}
+
+.history-list::-webkit-scrollbar { width: 4px; }
+.history-list::-webkit-scrollbar-track { background: transparent; }
+.history-list::-webkit-scrollbar-thumb { background: var(–border); border-radius: 99px; }
+
+.history-item {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 8px 10px;
+border-radius: 8px;
+background: var(–panel2);
+font-size: 12px;
+animation: fadeUp 0.2s ease;
+}
+
+.history-dot {
+width: 6px; height: 6px;
+border-radius: 50%;
+flex-shrink: 0;
+}
+
+.history-sym {
+font-family: ‘Space Mono’, monospace;
+font-weight: 700;
+font-size: 12px;
+min-width: 26px;
+}
+
+.history-name { flex: 1; color: var(–muted); }
+
+.history-result {
+font-family: ‘Space Mono’, monospace;
+font-size: 10px;
+}
+
+/* Achievements */
+.achievements {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.ach-item {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 10px 12px;
+border-radius: 10px;
+background: var(–panel2);
+border: 1px solid var(–border);
+opacity: 0.4;
+transition: all 0.3s;
+}
+
+.ach-item.unlocked {
+opacity: 1;
+border-color: rgba(245,158,11,0.3);
+background: rgba(245,158,11,0.06);
+}
+
+.ach-icon { font-size: 20px; }
+
+.ach-info .ach-name { font-size: 12px; font-weight: 700; }
+.ach-info .ach-desc { font-size: 10px; color: var(–muted); }
+
+/* Confetti particle */
+.confetti {
+position: fixed;
+width: 8px;
+height: 8px;
+border-radius: 2px;
+pointer-events: none;
+z-index: 999;
+animation: confettiFall 0.9s ease forwards;
+}
+
+@keyframes confettiFall {
+0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+100% { transform: translateY(180px) rotate(720deg); opacity: 0; }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+.layout { grid-template-columns: 220px 1fr; }
+.right-sidebar { display: none; }
+}
+
+@media (max-width: 700px) {
+.layout { grid-template-columns: 1fr; padding: 16px; }
+.sidebar { display: none; }
+.header { padding: 16px; }
+}
+
+/* Score animation */
+.score-pop {
+position: fixed;
+pointer-events: none;
+font-family: ‘Space Mono’, monospace;
+font-size: 22px;
+font-weight: 700;
+color: var(–green);
+z-index: 999;
+animation: scorePop 0.8s ease forwards;
+}
+
+@keyframes scorePop {
+0% { transform: translateY(0) scale(0.8); opacity: 1; }
+100% { transform: translateY(-80px) scale(1.2); opacity: 0; }
+}
+
+.card-flip-enter {
+animation: flipIn 0.35s ease forwards;
+}
+
+@keyframes flipIn {
+from { opacity: 0; transform: rotateY(30deg) scale(0.95); }
+to { opacity: 1; transform: rotateY(0) scale(1); }
+}
+
+.empty-history {
+font-size: 12px;
+color: var(–muted);
+text-align: center;
+padding: 16px;
+font-family: ‘Space Mono’, monospace;
+}
+</style>
+
+</head>
+<body>
+
+<!-- Header -->
+
+<header class="header">
+  <div class="logo">Element<span>IQ</span></div>
+  <div class="header-stats">
+    <div class="header-stat">
+      <span class="val" id="totalScore">0</span>
+      <span class="lbl">Score</span>
+    </div>
+    <div class="header-stat">
+      <span class="val" id="accuracy">—</span>
+      <span class="lbl">Accuracy</span>
+    </div>
+    <div class="streak-badge">🔥 <span id="streakVal">0</span> streak</div>
+  </div>
+</header>
+
+<!-- Layout -->
+
+<div class="layout">
+
+  <!-- Left Sidebar -->
+
+  <aside class="sidebar">
+
+```
+<div class="panel">
+  <div class="panel-title">Game Mode</div>
+  <div class="modes">
+    <button class="mode-btn active" data-mode="mcq" onclick="setMode('mcq', this)">
+      <span class="mode-icon">🎯</span>
+      <div>
+        <div style="font-weight:700">Multiple Choice</div>
+        <div style="font-size:11px;color:var(--muted)">Pick the right answer</div>
+      </div>
+    </button>
+    <button class="mode-btn" data-mode="type" onclick="setMode('type', this)">
+      <span class="mode-icon">⌨️</span>
+      <div>
+        <div style="font-weight:700">Type Answer</div>
+        <div style="font-size:11px;color:var(--muted)">Harder but more points</div>
+      </div>
+    </button>
+    <button class="mode-btn" data-mode="symbol" onclick="setMode('symbol', this)">
+      <span class="mode-icon">🔡</span>
+      <div>
+        <div style="font-weight:700">Symbol → Name</div>
+        <div style="font-size:11px;color:var(--muted)">Given symbol, name it</div>
+      </div>
+    </button>
+    <button class="mode-btn" data-mode="number" onclick="setMode('number', this)">
+      <span class="mode-icon">🔢</span>
+      <div>
+        <div style="font-weight:700">Number → Name</div>
+        <div style="font-size:11px;color:var(--muted)">Given atomic #, name it</div>
+      </div>
+    </button>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Difficulty</div>
+  <div class="diff-btns">
+    <button class="diff-btn active-easy" onclick="setDifficulty('easy', this)">Easy</button>
+    <button class="diff-btn" onclick="setDifficulty('medium', this)">Medium</button>
+    <button class="diff-btn" onclick="setDifficulty('hard', this)">Hard</button>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Progress</div>
+  <div class="progress-wrap">
+    <div class="progress-labels">
+      <span id="progLabel">0 / 118 learned</span>
+      <span id="progPct">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Categories</div>
+  <div class="cats" id="catList"></div>
+</div>
+```
+
+  </aside>
+
+  <!-- Main Game -->
+
+  <main class="game-area">
+    <div class="element-card" id="elementCard">
+      <!-- Timer -->
+      <div class="timer-ring" id="timerRing">
+        <svg width="48" height="48" viewBox="0 0 48 48">
+          <circle class="bg" cx="24" cy="24" r="20" stroke-dasharray="125.6" stroke-dashoffset="0"/>
+          <circle class="fg" id="timerCircle" cx="24" cy="24" r="20" stroke-dasharray="125.6" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-text" id="timerText">—</div>
+      </div>
+
+```
+  <div class="question-type" id="questionType">LOADING...</div>
+
+  <div class="element-display" id="elementDisplay"></div>
+
+  <div class="question-text" id="questionText"></div>
+
+  <!-- MCQ -->
+  <div class="options-grid" id="optionsGrid"></div>
+
+  <!-- Type -->
+  <div class="text-input-wrap" id="typeWrap" style="display:none">
+    <input class="text-input" id="typeInput" placeholder="Type your answer..." autocomplete="off" spellcheck="false"/>
+    <button class="submit-btn" onclick="submitTyped()">→</button>
+  </div>
+
+  <div class="feedback-bar" id="feedbackBar"></div>
+
+  <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Element →</button>
+</div>
+
+<!-- Fun fact -->
+<div style="max-width:480px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 20px;">
+  <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:8px;font-family:'Space Mono',monospace">⚡ Element Fact</div>
+  <div id="funFact" style="font-size:13px;line-height:1.6;color:var(--text);">Loading a cool element fact...</div>
+</div>
+```
+
+  </main>
+
+  <!-- Right Sidebar -->
+
+  <aside class="right-sidebar">
+
+```
+<div class="panel">
+  <div class="panel-title">Session Stats</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="val" id="statCorrect" style="color:var(--green)">0</div>
+      <div class="lbl">Correct</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="statWrong" style="color:var(--red)">0</div>
+      <div class="lbl">Wrong</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="statBest" style="color:var(--yellow)">0</div>
+      <div class="lbl">Best Streak</div>
+    </div>
+    <div class="stat-card">
+      <div class="val" id="statPoints" style="color:var(--accent)">0</div>
+      <div class="lbl">Points</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Recent Answers</div>
+  <div class="history-list" id="historyList">
+    <div class="empty-history">No answers yet</div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Achievements</div>
+  <div class="achievements" id="achievementsList"></div>
+</div>
+```
+
+  </aside>
+
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const elements = [
+  {n:1,sym:'H',name:'Hydrogen',cat:'nonmetal',color:'#6ee7f7',fact:'The most abundant element in the universe — makes up ~75% of all matter!'},
+  {n:2,sym:'He',name:'Helium',cat:'noble gas',color:'#a78bfa',fact:'Helium was discovered on the Sun before it was found on Earth.'},
+  {n:3,sym:'Li',name:'Lithium',cat:'alkali metal',color:'#fb7185',fact:'Lithium is so light it floats on water!'},
+  {n:4,sym:'Be',name:'Beryllium',cat:'alkaline earth',color:'#34d399',fact:'Beryllium is transparent to X-rays and used in spacecraft.'},
+  {n:5,sym:'B',name:'Boron',cat:'metalloid',color:'#fbbf24',fact:'Boron is essential for plant growth.'},
+  {n:6,sym:'C',name:'Carbon',cat:'nonmetal',color:'#6ee7f7',fact:'Carbon is the basis of all known life, forming millions of compounds.'},
+  {n:7,sym:'N',name:'Nitrogen',cat:'nonmetal',color:'#6ee7f7',fact:'Nitrogen makes up 78% of Earth\'s atmosphere.'},
+  {n:8,sym:'O',name:'Oxygen',cat:'nonmetal',color:'#6ee7f7',fact:'Oxygen was discovered independently by Scheele and Priestley in the 1770s.'},
+  {n:9,sym:'F',name:'Fluorine',cat:'nonmetal',color:'#6ee7f7',fact:'Fluorine is the most reactive element — it attacks even glass!'},
+  {n:10,sym:'Ne',name:'Neon',cat:'noble gas',color:'#a78bfa',fact:'Neon gives off a distinctive red-orange glow in discharge tubes.'},
+  {n:11,sym:'Na',name:'Sodium',cat:'alkali metal',color:'#fb7185',fact:'Sodium reacts explosively with water, producing hydrogen gas.'},
+  {n:12,sym:'Mg',name:'Magnesium',cat:'alkaline earth',color:'#34d399',fact:'Magnesium burns with an intensely bright white flame.'},
+  {n:13,sym:'Al',name:'Aluminium',cat:'post-transition',color:'#94a3b8',fact:'Aluminium is the most abundant metal in Earth\'s crust.'},
+  {n:14,sym:'Si',name:'Silicon',cat:'metalloid',color:'#fbbf24',fact:'Silicon is the foundation of modern computer chips.'},
+  {n:15,sym:'P',name:'Phosphorus',cat:'nonmetal',color:'#6ee7f7',fact:'Phosphorus glows in the dark — its name means "light bringer."'},
+  {n:16,sym:'S',name:'Sulfur',cat:'nonmetal',color:'#6ee7f7',fact:'Sulfur has been used since ancient times and is mentioned in the Bible.'},
+  {n:17,sym:'Cl',name:'Chlorine',cat:'nonmetal',color:'#6ee7f7',fact:'Chlorine was used as a chemical weapon in World War I.'},
+  {n:18,sym:'Ar',name:'Argon',cat:'noble gas',color:'#a78bfa',fact:'Argon makes up nearly 1% of Earth\'s atmosphere.'},
+  {n:19,sym:'K',name:'Potassium',cat:'alkali metal',color:'#fb7185',fact:'The symbol K comes from the Latin "Kalium."'},
+  {n:20,sym:'Ca',name:'Calcium',cat:'alkaline earth',color:'#34d399',fact:'Calcium is the most abundant mineral in the human body.'},
+  {n:24,sym:'Cr',name:'Chromium',cat:'transition metal',color:'#60a5fa',fact:'Chromium gives rubies their red color.'},
+  {n:25,sym:'Mn',name:'Manganese',cat:'transition metal',color:'#60a5fa',fact:'Manganese is essential for steel production.'},
+  {n:26,sym:'Fe',name:'Iron',cat:'transition metal',color:'#60a5fa',fact:'Iron is the most used metal, making up Earth\'s core.'},
+  {n:27,sym:'Co',name:'Cobalt',cat:'transition metal',color:'#60a5fa',fact:'Cobalt gives blue pigment to glass and ceramics.'},
+  {n:28,sym:'Ni',name:'Nickel',cat:'transition metal',color:'#60a5fa',fact:'Nickel is used in coins worldwide.'},
+  {n:29,sym:'Cu',name:'Copper',cat:'transition metal',color:'#60a5fa',fact:'Copper is the oldest metal used by humans, dating back 10,000 years.'},
+  {n:30,sym:'Zn',name:'Zinc',cat:'transition metal',color:'#60a5fa',fact:'Zinc is essential for immune function in humans.'},
+  {n:35,sym:'Br',name:'Bromine',cat:'nonmetal',color:'#6ee7f7',fact:'Bromine is one of only two elements that is liquid at room temperature.'},
+  {n:36,sym:'Kr',name:'Krypton',cat:'noble gas',color:'#a78bfa',fact:'Krypton is used in high-performance lightbulbs.'},
+  {n:42,sym:'Mo',name:'Molybdenum',cat:'transition metal',color:'#60a5fa',fact:'Molybdenum has the 6th-highest melting point of any element.'},
+  {n:47,sym:'Ag',name:'Silver',cat:'transition metal',color:'#60a5fa',fact:'Silver has the highest electrical conductivity of any element.'},
+  {n:50,sym:'Sn',name:'Tin',cat:'post-transition',color:'#94a3b8',fact:'Tin cans are actually mostly steel, with just a thin tin coating.'},
+  {n:53,sym:'I',name:'Iodine',cat:'nonmetal',color:'#6ee7f7',fact:'Iodine is essential for thyroid hormone production.'},
+  {n:54,sym:'Xe',name:'Xenon',cat:'noble gas',color:'#a78bfa',fact:'Xenon is used in powerful flash lamps and ion propulsion in spacecraft.'},
+  {n:74,sym:'W',name:'Tungsten',cat:'transition metal',color:'#60a5fa',fact:'Tungsten has the highest melting point of all elements: 3,422°C!'},
+  {n:78,sym:'Pt',name:'Platinum',cat:'transition metal',color:'#60a5fa',fact:'Platinum is rarer than gold and is used in catalytic converters.'},
+  {n:79,sym:'Au',name:'Gold',cat:'transition metal',color:'#60a5fa',fact:'Gold is so malleable that 1 gram can be beaten into a 1-square-meter sheet.'},
+  {n:80,sym:'Hg',name:'Mercury',cat:'transition metal',color:'#60a5fa',fact:'Mercury is the only metal that is liquid at room temperature.'},
+  {n:82,sym:'Pb',name:'Lead',cat:'post-transition',color:'#94a3b8',fact:'Lead was used in Roman pipes and is thought to have caused the fall of Rome.'},
+  {n:86,sym:'Rn',name:'Radon',cat:'noble gas',color:'#a78bfa',fact:'Radon is a naturally occurring radioactive gas found in homes.'},
+  {n:92,sym:'U',name:'Uranium',cat:'actinide',color:'#f97316',fact:'Uranium was discovered in 1789 and named after the planet Uranus.'},
+  {n:79,sym:'Au',name:'Gold',cat:'transition metal',color:'#60a5fa',fact:'Gold is so malleable that 1 gram can be beaten into a 1-square-meter sheet.'},
+];
+
+// Deduplicate
+const ELEMENTS = [...new Map(elements.map(e=>[e.n, e])).values()].sort((a,b)=>a.n-b.n);
+
+const CATEGORIES = {
+  'nonmetal':       { color: '#6ee7f7', label: 'Nonmetals' },
+  'noble gas':      { color: '#a78bfa', label: 'Noble Gases' },
+  'alkali metal':   { color: '#fb7185', label: 'Alkali Metals' },
+  'alkaline earth': { color: '#34d399', label: 'Alkaline Earth' },
+  'metalloid':      { color: '#fbbf24', label: 'Metalloids' },
+  'transition metal':{ color: '#60a5fa', label: 'Transition Metals' },
+  'post-transition':{ color: '#94a3b8', label: 'Post-Transition' },
+  'actinide':       { color: '#f97316', label: 'Actinides' },
+};
+
+const ACHIEVEMENTS = [
+  { id:'first', icon:'🎯', name:'First Answer', desc:'Answer your first question', check: s => s.total >= 1 },
+  { id:'streak5', icon:'🔥', name:'On Fire!', desc:'Get a 5-question streak', check: s => s.bestStreak >= 5 },
+  { id:'streak10', icon:'⚡', name:'Lightning', desc:'Get a 10-question streak', check: s => s.bestStreak >= 10 },
+  { id:'score100', icon:'💯', name:'Century', desc:'Score 100 points', check: s => s.score >= 100 },
+  { id:'score500', icon:'🏆', name:'Champion', desc:'Score 500 points', check: s => s.score >= 500 },
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = {
+  mode: 'mcq',
+  difficulty: 'easy',
+  current: null,
+  answered: false,
+  streak: 0,
+  bestStreak: 0,
+  score: 0,
+  correct: 0,
+  wrong: 0,
+  total: 0,
+  learned: new Set(),
+  history: [],
+  timer: null,
+  timeLeft: 0,
+  achievements: new Set(),
+  activeCat: 'all',
+};
+
+const TIMER_DURATION = { easy: 0, medium: 15, hard: 10 };
+const POINTS = { easy: 10, medium: 20, hard: 30 };
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+function init() {
+  buildCategoryList();
+  buildAchievements();
+  nextQuestion();
+}
+
+function buildCategoryList() {
+  const list = document.getElementById('catList');
+  const cats = Object.entries(CATEGORIES);
+  const total = ELEMENTS.length;
+
+  let html = `<div class="cat-item active" onclick="filterCat('all', this)">
+    <div style="display:flex;align-items:center;flex:1">
+      <div class="cat-dot" style="background:#64748b"></div>
+      <span class="cat-name">All Elements</span>
+    </div>
+    <span class="cat-count">${total}</span>
+  </div>`;
+
+  cats.forEach(([key, val]) => {
+    const count = ELEMENTS.filter(e => e.cat === key).length;
+    if (!count) return;
+    html += `<div class="cat-item" onclick="filterCat('${key}', this)">
+      <div style="display:flex;align-items:center;flex:1">
+        <div class="cat-dot" style="background:${val.color}"></div>
+        <span class="cat-name">${val.label}</span>
+      </div>
+      <span class="cat-count">${count}</span>
+    </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+function buildAchievements() {
+  const list = document.getElementById('achievementsList');
+  list.innerHTML = ACHIEVEMENTS.map(a =>
+    `<div class="ach-item" id="ach-${a.id}">
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-info">
+        <div class="ach-name">${a.name}</div>
+        <div class="ach-desc">${a.desc}</div>
+      </div>
+    </div>`
+  ).join('');
+}
+
+// ─── GAME LOGIC ──────────────────────────────────────────────────────────────
+function getPool() {
+  let pool = ELEMENTS;
+  if (state.activeCat !== 'all') pool = pool.filter(e => e.cat === state.activeCat);
+  return pool;
+}
+
+function getRandom(arr, exclude) {
+  const filtered = arr.filter(e => e.n !== (exclude?.n));
+  return filtered[Math.floor(Math.random() * filtered.length)];
+}
+
+function getOptions(correct, pool) {
+  const opts = [correct];
+  while (opts.length < 4) {
+    const r = getRandom(pool, null);
+    if (!opts.find(o => o.n === r.n)) opts.push(r);
+  }
+  return opts.sort(() => Math.random() - 0.5);
+}
+
+function nextQuestion() {
+  clearTimer();
+  state.answered = false;
+  state.current = getRandom(getPool(), null);
+
+  const el = state.current;
+  const card = document.getElementById('elementCard');
+  card.classList.remove('card-flip-enter');
+  void card.offsetWidth;
+  card.classList.add('card-flip-enter');
+
+  // Display element
+  renderQuestion(el);
+  renderOptions(el);
+
+  // Fun fact
+  document.getElementById('funFact').textContent = el.fact;
+
+  // Timer
+  const duration = TIMER_DURATION[state.difficulty];
+  if (duration > 0) startTimer(duration);
+  else {
+    document.getElementById('timerText').textContent = '∞';
+    document.getElementById('timerCircle').style.strokeDashoffset = '0';
+    document.getElementById('timerCircle').style.stroke = 'var(--accent)';
+  }
+
+  // Reset feedback
+  const fb = document.getElementById('feedbackBar');
+  fb.className = 'feedback-bar';
+  fb.textContent = '';
+
+  document.getElementById('nextBtn').classList.remove('show');
+
+  // Type input
+  const ti = document.getElementById('typeInput');
+  if (ti) { ti.value = ''; ti.className = 'text-input'; ti.disabled = false; }
+}
+
+function renderQuestion(el) {
+  const catInfo = CATEGORIES[el.cat] || { color: '#64748b' };
+  const mode = state.mode;
+  let qType = '', displayHtml = '', qText = '';
+
+  if (mode === 'symbol' || (mode === 'mcq' && Math.random() < 0.5)) {
+    // Show symbol, ask for name
+    qType = '🔡 SYMBOL → NAME';
+    displayHtml = `
+      <div class="element-atomic">Atomic #${el.n}</div>
+      <div class="element-symbol-big">${el.sym}</div>
+      <span class="element-category-tag" style="background:${catInfo.color}22;color:${catInfo.color};border:1px solid ${catInfo.color}44">${el.cat}</span>`;
+    qText = `What is the element with symbol <strong>${el.sym}</strong>?`;
+    document.getElementById('questionType').textContent = qType;
+  } else if (mode === 'number') {
+    // Show atomic number, ask for name
+    qType = '🔢 NUMBER → NAME';
+    displayHtml = `
+      <div class="element-number-big">${el.n}</div>
+      <span class="element-category-tag" style="background:${catInfo.color}22;color:${catInfo.color};border:1px solid ${catInfo.color}44">${el.cat}</span>`;
+    qText = `Which element has atomic number <strong>${el.n}</strong>?`;
+    document.getElementById('questionType').textContent = qType;
+  } else {
+    // Random: show name, ask for symbol or number
+    const askSym = Math.random() < 0.5;
+    if (askSym) {
+      qType = '🏷️ NAME → SYMBOL';
+      displayHtml = `<div class="element-symbol-big" style="font-size:52px;color:var(--text)">${el.name}</div>`;
+      qText = `What is the chemical symbol for <strong>${el.name}</strong>?`;
+    } else {
+      qType = '🔢 NAME → NUMBER';
+      displayHtml = `<div class="element-symbol-big" style="font-size:52px;color:var(--text)">${el.name}</div>`;
+      qText = `What is the atomic number of <strong>${el.name}</strong>?`;
+    }
+    document.getElementById('questionType').textContent = qType;
+    state._askSym = askSym;
+  }
+
+  document.getElementById('questionType').textContent = qType;
+  document.getElementById('elementDisplay').innerHTML = displayHtml;
+  document.getElementById('questionText').innerHTML = qText;
+}
+
+function renderOptions(el) {
+  const mode = state.mode;
+  const typeMode = mode === 'type';
+  const pool = getPool();
+
+  document.getElementById('optionsGrid').style.display = typeMode ? 'none' : 'grid';
+  document.getElementById('typeWrap').style.display = typeMode ? 'flex' : 'none';
+
+  if (!typeMode) {
+    const options = getOptions(el, pool);
+    const qType = document.getElementById('questionType').textContent;
+
+    // Determine what the answer is
+    let getLabel;
+    if (qType.includes('→ NAME') || qType.includes('NUMBER → NAME')) {
+      getLabel = e => e.name;
+    } else if (qType.includes('→ SYMBOL')) {
+      getLabel = e => e.sym;
+    } else {
+      getLabel = e => `${e.n}`;
+    }
+
+    document.getElementById('optionsGrid').innerHTML = options.map(o =>
+      `<button class="option-btn" onclick="selectOption(this, ${o.n === el.n}, '${el.name}', '${el.sym}', ${el.n})">
+        ${getLabel(o)}
+      </button>`
+    ).join('');
+  }
+}
+
+function selectOption(btn, isCorrect, name, sym, num) {
+  if (state.answered) return;
+  state.answered = true;
+  clearTimer();
+
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => {
+    b.disabled = true;
+    const label = b.textContent.trim();
+    if (label === name || label === sym || label === String(num)) {
+      b.classList.add('correct');
+    }
+  });
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    handleCorrect(btn);
+  } else {
+    btn.classList.add('wrong');
+    handleWrong(name);
+  }
+}
+
+function submitTyped() {
+  if (state.answered) return;
+  const input = document.getElementById('typeInput');
+  const val = input.value.trim().toLowerCase();
+  if (!val) return;
+
+  state.answered = true;
+  clearTimer();
+
+  const el = state.current;
+  const qType = document.getElementById('questionType').textContent;
+  let correct;
+
+  if (qType.includes('→ NAME') || qType.includes('NUMBER → NAME')) {
+    correct = val === el.name.toLowerCase();
+  } else if (qType.includes('→ SYMBOL')) {
+    correct = val === el.sym.toLowerCase();
+  } else {
+    correct = val === String(el.n);
+  }
+
+  input.disabled = true;
+  if (correct) {
+    input.classList.add('correct');
+    handleCorrect(input);
+  } else {
+    input.classList.add('wrong');
+    handleWrong(el.name);
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (state.mode === 'type' && !state.answered) submitTyped();
+    else if (state.answered) nextQuestion();
+  }
+});
+
+function handleCorrect(el) {
+  state.correct++;
+  state.total++;
+  state.streak++;
+  if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+  const pts = POINTS[state.difficulty] + (state.streak > 3 ? state.streak * 2 : 0);
+  state.score += pts;
+
+  state.learned.add(state.current.n);
+
+  showFeedback(true, `+${pts} pts — Correct! 🎉`);
+  if (state.streak >= 3) spawnConfetti(el);
+  spawnScorePop(`+${pts}`, el);
+
+  addHistory(state.current, true);
+  updateUI();
+  checkAchievements();
+
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function handleWrong(correctName) {
+  state.wrong++;
+  state.total++;
+  state.streak = 0;
+
+  showFeedback(false, `Wrong! The answer was: ${correctName}`);
+  addHistory(state.current, false);
+  updateUI();
+  checkAchievements();
+
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function showFeedback(correct, msg) {
+  const fb = document.getElementById('feedbackBar');
+  fb.textContent = msg;
+  fb.className = `feedback-bar show ${correct ? 'correct' : 'wrong'}`;
+}
+
+// ─── TIMER ────────────────────────────────────────────────────────────────────
+function startTimer(duration) {
+  state.timeLeft = duration;
+  const circle = document.getElementById('timerCircle');
+  const text = document.getElementById('timerText');
+  const circumference = 125.6;
+
+  circle.style.strokeDashoffset = '0';
+  text.textContent = duration;
+
+  state.timer = setInterval(() => {
+    state.timeLeft--;
+    const progress = state.timeLeft / duration;
+    circle.style.strokeDashoffset = `${circumference * (1 - progress)}`;
+    text.textContent = state.timeLeft;
+
+    if (state.timeLeft <= 3) circle.style.stroke = 'var(--red)';
+    else if (state.timeLeft <= 6) circle.style.stroke = 'var(--yellow)';
+    else circle.style.stroke = 'var(--accent)';
+
+    if (state.timeLeft <= 0) {
+      clearTimer();
+      if (!state.answered) handleWrong(state.current.name);
+    }
+  }, 1000);
+}
+
+function clearTimer() {
+  if (state.timer) clearInterval(state.timer);
+  state.timer = null;
+  document.getElementById('timerText').textContent = '∞';
+}
+
+// ─── UI UPDATES ──────────────────────────────────────────────────────────────
+function updateUI() {
+  document.getElementById('totalScore').textContent = state.score;
+  document.getElementById('streakVal').textContent = state.streak;
+  document.getElementById('statCorrect').textContent = state.correct;
+  document.getElementById('statWrong').textContent = state.wrong;
+  document.getElementById('statBest').textContent = state.bestStreak;
+  document.getElementById('statPoints').textContent = state.score;
+
+  const acc = state.total > 0 ? Math.round((state.correct / state.total) * 100) + '%' : '—';
+  document.getElementById('accuracy').textContent = acc;
+
+  const pct = Math.round((state.learned.size / ELEMENTS.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progLabel').textContent = `${state.learned.size} / ${ELEMENTS.length} learned`;
+  document.getElementById('progPct').textContent = pct + '%';
+}
+
+function addHistory(el, correct) {
+  state.history.unshift({ el, correct });
+  if (state.history.length > 20) state.history.pop();
+
+  const list = document.getElementById('historyList');
+  const catInfo = CATEGORIES[el.cat] || { color: '#64748b' };
+
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  item.innerHTML = `
+    <div class="history-dot" style="background:${correct ? 'var(--green)' : 'var(--red)'}"></div>
+    <div class="history-sym" style="color:${catInfo.color}">${el.sym}</div>
+    <div class="history-name">${el.name}</div>
+    <div class="history-result" style="color:${correct ? 'var(--green)' : 'var(--red)'}">${correct ? '✓' : '✗'}</div>`;
+
+  if (list.querySelector('.empty-history')) list.innerHTML = '';
+  list.prepend(item);
+}
+
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(a => {
+    if (!state.achievements.has(a.id) && a.check(state)) {
+      state.achievements.add(a.id);
+      const el = document.getElementById(`ach-${a.id}`);
+      if (el) el.classList.add('unlocked');
+    }
+  });
+}
+
+// ─── EFFECTS ─────────────────────────────────────────────────────────────────
+function spawnConfetti(ref) {
+  const colors = ['#00d4ff','#ff6b35','#7c3aed','#10b981','#f59e0b'];
+  const rect = document.getElementById('elementCard').getBoundingClientRect();
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti';
+    p.style.cssText = `
+      left: ${rect.left + Math.random() * rect.width}px;
+      top: ${rect.top + rect.height * 0.4}px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      transform: rotate(${Math.random() * 360}deg);
+      animation-delay: ${Math.random() * 0.3}s;
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1200);
+  }
+}
+
+function spawnScorePop(text, el) {
+  const rect = document.getElementById('elementCard').getBoundingClientRect();
+  const p = document.createElement('div');
+  p.className = 'score-pop';
+  p.textContent = text;
+  p.style.left = (rect.left + rect.width / 2 - 20) + 'px';
+  p.style.top = (rect.top + 40) + 'px';
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 900);
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function setMode(mode, btn) {
+  state.mode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  nextQuestion();
+}
+
+function setDifficulty(diff, btn) {
+  state.difficulty = diff;
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    b.className = 'diff-btn';
+  });
+  btn.classList.add(`active-${diff}`);
+  nextQuestion();
+}
+
+function filterCat(cat, el) {
+  state.activeCat = cat;
+  document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  nextQuestion();
+}
+
+// ─── START ───────────────────────────────────────────────────────────────────
+init();
+</script>
+
+</body>
+</html>
